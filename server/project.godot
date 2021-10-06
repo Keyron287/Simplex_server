@@ -1,0 +1,56 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+_global_script_classes=[ {
+"base": "Syncronizer",
+"class": "Data_sync",
+"language": "GDScript",
+"path": "res://src/msc/Data_sync.gd"
+}, {
+"base": "Node",
+"class": "Syncronizer",
+"language": "GDScript",
+"path": "res://src/msc/Syncronizer.gd"
+}, {
+"base": "Syncronizer",
+"class": "Transform_sync",
+"language": "GDScript",
+"path": "res://src/msc/Transform_sync.gd"
+} ]
+_global_script_class_icons={
+"Data_sync": "res://src/ast/Data_sync.svg",
+"Syncronizer": "res://src/ast/Syncronizer.svg",
+"Transform_sync": "res://src/ast/Transform_sync.svg"
+}
+
+[application]
+
+config/name="Simple_server"
+run/main_scene="res://src/scn/Empty.tscn"
+config/icon="res://icon.png"
+
+[autoload]
+
+Server="*res://src/aut/Server.gd"
+
+[debug]
+
+gdscript/warnings/unused_argument=false
+gdscript/warnings/unused_signal=false
+gdscript/warnings/return_value_discarded=false
+
+[physics]
+
+common/physics_fps=20
+common/enable_pause_aware_picking=true
+
+[rendering]
+
+environment/default_environment="res://default_env.tres"
