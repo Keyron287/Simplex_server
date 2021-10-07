@@ -6,6 +6,11 @@ onready var sync_tree: Tree = $Panel/HSplitContainer/VBoxContainer/Syncronizer
 onready var server_log: RichTextLabel = $Panel/HSplitContainer/RichTextLabel
 
 
+func _process(delta):
+	if Input.is_key_pressed(KEY_SPACE):
+		self.visible = not self.visible
+
+
 func update_clients(data:Dictionary):
 	_update_tree(peer_tree, "Clients", data)
 

@@ -7,6 +7,10 @@ var max_players = 10
 var sync_nodes: Dictionary = {}
 var start_id = 255
 
+signal server_active
+
+var active = false
+
 var player_info = {}
 
 var server_controls = preload("res://src/scn/Main.tscn").instance()
@@ -18,6 +22,8 @@ func _ready():
 	start_server()
 	update_clients()
 	update_syncs()
+	active = true
+	emit_signal("server_active")
 
 
 func update_clients():
@@ -89,7 +95,7 @@ func add_to_sync_nodes(node) -> String:
 	update_syncs()
 	return str(new_id)
 	# TODO il server chiede ai peer se hanno un corrisettivo sennò lo crea, "in spawn sync"
-
+	# TODO magari questa funzione dice al client di crearlo se non esiste
 
 func remove_from_sync_nodes(node):
 	update_syncs()
@@ -146,4 +152,5 @@ func send_sync(node_id, variable):
 
 
 func send_update(node_id, variable):
+	print(variable)
 	rpc_unreliable_id(0, "receive_sync", node_id, variable)

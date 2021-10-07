@@ -10,6 +10,10 @@ var is_reliable = true
 
 
 func _enter_tree():
+	Server.connect("server_active",self,"initialize")
+
+
+func initialize():
 	id = Server.add_to_sync_nodes(self)
 
 
@@ -29,15 +33,15 @@ func remove_from_sync_nodes():
 
 
 func sync_data(variable):
-	if is_master:
+	if my_master <= 1:
 		if is_reliable:
-			Server.sync_data(true, id, variable)
+			Server.send_sync(id, variable)
 		else:
-			Server.sync_data(false, id, variable)
+			Server.send_update(id, variable)
 
 
 func receive_sync(variable):
-	if not is_master:
+	if my_master > 1:
 		process_sync(variable)
 
 

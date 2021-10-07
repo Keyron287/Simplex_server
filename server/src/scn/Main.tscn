@@ -43,8 +43,8 @@ rect_min_size = Vector2( 500, 295 )
 columns = 2
 
 [node name="RichTextLabel" type="RichTextLabel" parent="Panel/HSplitContainer"]
-margin_left = 508.0
-margin_right = 1008.0
+margin_left = 504.0
+margin_right = 1004.0
 margin_bottom = 594.0
 rect_min_size = Vector2( 500, 594 )
 text = "--- SERVER LOG ---"

@@ -23,9 +23,9 @@ func process_sync(var_value):
 		buffer.append(var_value)
 		if buffer.size() > 4:
 			buffer.pop_front()
-	_interpolate()
-	_extrapolate()
-	get_parent().global_transform = var_value[1]
+		_interpolate()
+		_extrapolate()
+		get_parent().global_transform = var_value[1]
 
 
 func _interpolate():
