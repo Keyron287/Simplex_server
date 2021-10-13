@@ -44,15 +44,13 @@ func add_to_sync_nodes(node):
 	sync_nodes[node.id] = node 
 
 
-func return_id(node_path, id):
-	sync_nodes[id] = waiting_id[node_path]
-	waiting_id.erase(node_path)
-	sync_nodes[id].receive_id(id)
-
-
-func remove_from_sync_nodes(node):
+func remove_from_sync_nodes(node, delete = false):
 	sync_nodes.erase(node.id)
+	if delete:
+		node.queue_free()
 
+remote func remote_remove_sync(node_id, delete):
+	remove_from_sync_nodes(sync_nodes[node_id], delete)
 
 func _is_valid_sync(id:String)-> bool:
 	if sync_nodes.has(id) and is_instance_valid(sync_nodes[id]):
@@ -63,14 +61,14 @@ func _is_valid_sync(id:String)-> bool:
 
 func sync_of(node):
 	for c in node.get_children():
-		if c is Syncro:
+		if c is Syn3D or c is Syn2D:
 			return c
 	assert(false, "No Syncro node in "+ node.name)
 
 
 func is_syncro(node) -> bool:
 	for c in node.get_children():
-		if c is Syncro:
+		if c is Syn3D or c is Syn2D:
 			return true
 	return false
 
@@ -93,16 +91,10 @@ remote func start_current_scene():
 
 func spawn_sync(syn_par: Dictionary):
 	if 1 == get_tree().get_rpc_sender_id():
-		if syn_par["is_player"] and syn_par["is_master"] == get_tree().get_network_unique_id():
-			## TODO spawn_player
-			pass
 		var unit = ResourceManager.get_unit(syn_par["resource_name"])
 		var parent = get_node(syn_par["parent_path"])
-		if is_instance_valid(parent):
-			parent.add_child(unit)
-		else:
-			# TODO throw error
-			pass
+		assert(is_instance_valid(parent), syn_par["parent_path"] + " is not a valid path")
+		parent.add_child(unit)
 		sync_of(unit).initialize(syn_par)
 
 

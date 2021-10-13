@@ -143,9 +143,10 @@ func add_to_sync_nodes(node) -> String:
 	return str(new_id)
 
 
-func remove_from_sync_nodes(node):
-	update_syncs()
+func remove_from_sync_nodes(node, delete):
 	sync_nodes.erase(node.id)
+	rpc_id(0, "remote_remove_sync", node.id, delete)
+	update_syncs()
 
 
 func _is_valid_sync(id:String)-> bool:
@@ -157,14 +158,14 @@ func _is_valid_sync(id:String)-> bool:
 
 func sync_of(node):
 	for c in node.get_children():
-		if c is Syncro:
+		if c is Syn3D or c is Syn2D:
 			return c
 	assert(false, "No Syncro node in "+ node.name)
 
 
 func is_syncro(node) -> bool:
 	for c in node.get_children():
-		if c is Syncro:
+		if c is Syn3D or c is Syn2D:
 			return true
 	return false
 
@@ -196,7 +197,7 @@ func load_scene(scene_name):
 	# Spawns every syncro in the client scene
 	_step_signal("loading_scene", loading_scene_steps.SPAWN_CLIENT_SYNCRO)
 	for n in sync_nodes.keys():
-		var syn:Syncro = sync_nodes[n]
+		var syn:Syn3D = sync_nodes[n]
 		spawn_sync_client(syn.get_sync_properties())
 	
 	# Notifies everyone that the scene is finisced to load
@@ -234,7 +235,7 @@ func spawn_sync_client(sync_property):
 
 func spawn_sync_all(unit_type, unit_transform, is_master = 1, parent_path = false):
 	var unit = spawn_sync_server(unit_type, unit_transform, is_master, parent_path)
-	var unit_sync:Syncro = sync_of(unit)
+	var unit_sync:Syn3D = sync_of(unit)
 	spawn_sync_client(unit_sync.get_sync_properties())
 
 

@@ -14,7 +14,7 @@ func client_response(id, message):
 
 func wait_for_players():
 	Server.ask_ready()
-	var ready_players = 0
+	ready_players = 0
 	while ready_players < Server.player_info.keys().size():
 		yield(Server,"player_ready")
 		ready_players += 1

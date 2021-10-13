@@ -1,5 +1,5 @@
 extends Node
-class_name Syncro, "res://src/ast/Syncro.svg"
+class_name Syn2D, "res://src/ast/Syncro.svg"
 
 signal id_response(id)
 signal mastery_response(response)
@@ -34,6 +34,7 @@ func process_physics(enable):
 
 
 func initialize(new_data):
+	Server.add_to_sync_nodes(self)
 	self.sync_parent_transform = sync_parent_transform
 	self.id = new_data["id"]
 	self.is_player = new_data["is_player"]
@@ -41,8 +42,13 @@ func initialize(new_data):
 	self.sync_parent_transform = new_data["sync_parent_transform"]
 	self.is_master = new_data["my_master"] == get_tree().get_network_unique_id()
 	self.data = new_data["data"]
-	if get_parent() is Spatial:
+	if new_data["global_transform"] != null and get_parent() is Spatial:
 		get_parent().global_transform = new_data["global_transform"]
+
+
+# Removes the node from the syncronized nodes
+func remove_from_sync_nodes():
+	Server.remove_from_sync_nodes(self)
 
 
 func ask_mastery(request: bool):

@@ -20,14 +20,20 @@ _global_script_classes=[ {
 "path": "res://src/aut/Server.gd"
 }, {
 "base": "Node",
-"class": "Syncro",
+"class": "Syn2D",
 "language": "GDScript",
-"path": "res://src/msc/Syncro.gd"
+"path": "res://src/msc/Syn2D.gd"
+}, {
+"base": "Node",
+"class": "Syn3D",
+"language": "GDScript",
+"path": "res://src/msc/Syn3D.gd"
 } ]
 _global_script_class_icons={
 "Resource_manager": "",
 "Server_interface": "",
-"Syncro": "res://src/ast/Syncro.svg"
+"Syn2D": "res://src/ast/Syncro.svg",
+"Syn3D": "res://src/ast/Syncro.svg"
 }
 
 [application]

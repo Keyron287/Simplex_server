@@ -1,6 +1,6 @@
 tool
 extends Node
-class_name Syncro, "res://src/ast/Syncro.svg"
+class_name Syn3D, "res://src/ast/Syncro.svg"
 
 signal id_response(id)
 signal mastery_response(response)
@@ -49,8 +49,13 @@ func _enter_tree():
 		initialize(Server.loading_scene_step)
 
 
+func _exit_tree():
+	if self.is_queued_for_deletion():
+		remove_from_sync_nodes(true)
+
+
 ###################################################
-############### Syncro functions ##################
+############### Syn3D functions ##################
 ###################################################
 
 
@@ -73,9 +78,8 @@ func ask_mastery(player_id, request: bool):
 
 
 # Removes the node from the syncronized nodes
-func remove_from_sync_nodes():
-	Server.remove_from_sync_nodes(self)
-	# TODO notify to clients to eliminate node
+func remove_from_sync_nodes(delete = false):
+	Server.remove_from_sync_nodes(self, delete)
 
 
 # clones the data from and set them in the syncro
