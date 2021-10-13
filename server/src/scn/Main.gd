@@ -7,8 +7,9 @@ onready var server_log: RichTextLabel = $Panel/HSplitContainer/RichTextLabel
 
 
 func _process(delta):
-	if Input.is_key_pressed(KEY_SPACE):
+	if Input.is_action_just_pressed("show_hide_UI") :
 		self.visible = not self.visible
+		yield(get_tree().create_timer(1),"timeout")
 
 
 func update_clients(data:Dictionary):

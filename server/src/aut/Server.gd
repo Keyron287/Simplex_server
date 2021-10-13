@@ -1,5 +1,11 @@
 extends Node
 
+signal server_booting(step)
+signal loading_scene(step)
+signal client_message(sender, message)
+signal player_ready(sender)
+
+
 var network = NetworkedMultiplayerENet.new()
 var port = 1987
 var max_players = 10
@@ -7,42 +13,78 @@ var max_players = 10
 var sync_nodes: Dictionary = {}
 var start_id = 255
 
-signal server_active
-
 var active = false
+
+enum server_boot_up_steps {ADD_CONTROLS, GET_IP, START_SERVER, SERVER_ACTIVE}
+enum loading_scene_steps {LOAD_SERVER_MAP, LOAD_CLIENT_MAP, PICK_SERVER_SYNCRO, SPAWN_CLIENT_SYNCRO, LOADING_FINISHED}
+
+var server_status = {
+	"server_booting": -1,
+	"loading_scene": -1
+}
 
 var player_info = {}
 
 var server_controls = preload("res://src/scn/Main.tscn").instance()
 
 
+###################################################
+###################### Main #######################
+###################################################
+
+
 func _ready():
+	# Adds the interface to the server
 	add_child(server_controls)
+	_step_signal("server_booting", server_boot_up_steps.ADD_CONTROLS)
+	
+	# get_the ip via http_request
 	_get_my_ip()
+	_step_signal("server_booting", server_boot_up_steps.GET_IP)
+	
+	# starts the server
 	start_server()
+	_step_signal("server_booting", server_boot_up_steps.START_SERVER)
+	
+	# updates interface
 	update_clients()
 	update_syncs()
-	active = true
-	emit_signal("server_active")
+	
+	# notifies the server is ready to everyone and that they can start
+	_step_signal("server_booting", server_boot_up_steps.SERVER_ACTIVE)
+
+
+###################################################
+################ Utility functions ################
+###################################################
+
+
+func _step_signal(signal_name, step):
+	emit_signal(signal_name, step)
+	server_status[signal_name] = step
 
 
 func update_clients():
-	$Main.update_clients(player_info)
+	$Server_interface.update_clients(player_info)
 
 
 func update_syncs():
-	$Main.update_syncs(sync_nodes)
+	$Server_interface.update_syncs(sync_nodes)
 
 
 func add_to_log(sender:String, message:String):
-	$Main.add_to_log(sender, message)
+	$Server_interface.add_to_log(sender, message)
 
 
 func _log(message):
 	add_to_log(self.name, message)
 
 
-## Connessione al server
+###################################################
+############### Server connection #################
+###################################################
+
+
 func start_server():
 	var error = network.create_server(port, max_players)
 	if error: _log("Error code: "+ error)
@@ -76,11 +118,16 @@ func _get_my_ip(result=null, response_code=null, headers=null, body=null):
 		req.request("https://api.ipify.org")
 		return
 	elif body != null:
-		_log("Public IP: " + body.get_string_from_utf8())
+		_log("Public IP: " + body.get_string_from_utf8()+" : "+str(port))
 	else:
 		_log("Shit happened when retriving ip")
 	if has_node("ip_req"):
 		remove_child(get_node("ip_req"))
+
+
+###################################################
+############# Sync nodes management ###############
+###################################################
 
 
 func add_to_sync_nodes(node) -> String:
@@ -90,12 +137,11 @@ func add_to_sync_nodes(node) -> String:
 			new_id = key
 	if new_id == "":
 		start_id += 1
-		new_id = str(start_id)
+		new_id = "%04d" % start_id
 	sync_nodes[new_id] = node
 	update_syncs()
 	return str(new_id)
-	# TODO il server chiede ai peer se hanno un corrisettivo sennò lo crea, "in spawn sync"
-	# TODO magari questa funzione dice al client di crearlo se non esiste
+
 
 func remove_from_sync_nodes(node):
 	update_syncs()
@@ -109,23 +155,94 @@ func _is_valid_sync(id:String)-> bool:
 		return false
 
 
-func _get_id_by_path(node_path:NodePath):
-	for id in sync_nodes.keys():
-		if _is_valid_sync(id):
-			var check_node = sync_nodes[id].get_path() == node_path
-			if check_node:
-				return id
-	return null
+func sync_of(node):
+	for c in node.get_children():
+		if c is Syncro:
+			return c
+	assert(false, "No Syncro node in "+ node.name)
 
 
-remote func ask_id(node_path):
-	var player_id = get_tree().get_rpc_sender_id()
-	var id = _get_id_by_path(node_path)
-	assert(id != null)
-	rpc_id(player_id, "return_id", node_path, id)
+func is_syncro(node) -> bool:
+	for c in node.get_children():
+		if c is Syncro:
+			return true
+	return false
 
 
-### Sincronizzazione trasforms
+###################################################
+########## Change scene and sync spawn ############
+###################################################
+
+
+func load_scene(scene_name):
+	server_status["loading_scene"] = -1
+	# Load the scene on the server and pause it to load everything correctly
+	# TODO check if resource manager return something
+	get_tree().change_scene_to(ResourceManager.get_resource(scene_name))
+	get_tree().paused = true
+	_step_signal("loading_scene", loading_scene_steps.LOAD_SERVER_MAP)
+	
+	# Asks to clients to load the same scene
+	rpc_id(0, "change_scene", scene_name)
+	_step_signal("loading_scene", loading_scene_steps.LOAD_CLIENT_MAP)
+	
+	# Whaits the clients that everyone confirms the load
+	for n in range(player_info.keys().size()):
+		yield(self,"player_ready")
+	
+	# Notifies all the syncro to register themselves and pick an id
+	_step_signal("loading_scene", loading_scene_steps.PICK_SERVER_SYNCRO)
+	
+	# Spawns every syncro in the client scene
+	_step_signal("loading_scene", loading_scene_steps.SPAWN_CLIENT_SYNCRO)
+	for n in sync_nodes.keys():
+		var syn:Syncro = sync_nodes[n]
+		spawn_sync_client(syn.get_sync_properties())
+	
+	# Notifies everyone that the scene is finisced to load
+	_step_signal("loading_scene", loading_scene_steps.LOADING_FINISHED)
+
+
+func start_current_scene():
+	# Tell everyone that the scene can begin
+	get_tree().paused = false
+	rpc_id(0, "start_current_scene")
+
+
+func spawn_sync_server(unit_type, unit_transform, is_master = 1, parent_path = false) -> Node:
+	# Gets instance from Resouce_manager and the current scene
+	var unit = ResourceManager.get_unit(unit_type)
+	var parent = get_tree().current_scene
+	
+	# If parent path is not null add the child under the parent path
+	# else under the current_scene node
+	if parent_path:
+		var check = get_node(parent_path)
+		if is_instance_valid(check):
+			parent = check
+	parent.add_child(unit)
+	
+	# Syncronizes the transform and the data with the given data 
+	unit.global_tranform = unit_transform
+	sync_of(unit).my_master = is_master
+	return unit
+
+
+func spawn_sync_client(sync_property):
+	rpc_id(0, "spawn_sync",sync_property)
+
+
+func spawn_sync_all(unit_type, unit_transform, is_master = 1, parent_path = false):
+	var unit = spawn_sync_server(unit_type, unit_transform, is_master, parent_path)
+	var unit_sync:Syncro = sync_of(unit)
+	spawn_sync_client(unit_sync.get_sync_properties())
+
+
+###################################################
+############# Node mastery management #############
+###################################################
+
+
 remote func ask_mastery(node_id, request):
 	var player_id = get_tree().get_rpc_sender_id()
 	if _is_valid_sync(node_id):
@@ -134,6 +251,32 @@ remote func ask_mastery(node_id, request):
 
 func mastery_response(player_id, node_name, response, current_master):
 	rpc_id(player_id,"receive_mastery", node_name, response, current_master)
+
+
+###################################################
+############## Messaging functions ################
+###################################################
+
+
+func send_message(client_id = 0, message = ""):
+	rpc_id(client_id, "receive_message", message)
+
+
+remote func receive_message(message):
+	emit_signal("client_message", get_tree().get_rpc_sender_id(), message)
+
+
+func ask_ready():
+	rpc_id(0, "ask_ready")
+
+
+remote func player_is_ready():
+	emit_signal("player_ready", get_tree().get_rpc_sender_id())
+
+
+###################################################
+############ Syncronization functions #############
+###################################################
 
 
 remote func receive_sync(node_id, variable):
@@ -152,5 +295,4 @@ func send_sync(node_id, variable):
 
 
 func send_update(node_id, variable):
-	print(variable)
 	rpc_unreliable_id(0, "receive_sync", node_id, variable)

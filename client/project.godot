@@ -9,10 +9,10 @@
 config_version=4
 
 _global_script_classes=[ {
-"base": "Syncronizer",
-"class": "Data_sync",
+"base": "Node",
+"class": "Resource_manager",
 "language": "GDScript",
-"path": "res://src/msc/Data_sync.gd"
+"path": "res://src/aut/Resource_manager.gd"
 }, {
 "base": "Node",
 "class": "Server_interface",
@@ -20,20 +20,14 @@ _global_script_classes=[ {
 "path": "res://src/aut/Server.gd"
 }, {
 "base": "Node",
-"class": "Syncronizer",
+"class": "Syncro",
 "language": "GDScript",
-"path": "res://src/msc/Syncronizer.gd"
-}, {
-"base": "Syncronizer",
-"class": "Transform_sync",
-"language": "GDScript",
-"path": "res://src/msc/Transform_sync.gd"
+"path": "res://src/msc/Syncro.gd"
 } ]
 _global_script_class_icons={
-"Data_sync": "res://src/ast/Data_sync.svg",
+"Resource_manager": "",
 "Server_interface": "",
-"Syncronizer": "res://src/ast/Syncronizer.svg",
-"Transform_sync": "res://src/ast/Transform_sync.svg"
+"Syncro": "res://src/ast/Syncro.svg"
 }
 
 [application]
@@ -45,6 +39,14 @@ config/icon="res://icon.png"
 [autoload]
 
 Server="*res://src/aut/Server.gd"
+ResourceManager="*res://src/aut/Resource_manager.gd"
+TestMain="*res://test_scene/test_main.gd"
+
+[debug]
+
+gdscript/warnings/unused_argument=false
+gdscript/warnings/unused_signal=false
+gdscript/warnings/return_value_discarded=false
 
 [input]
 

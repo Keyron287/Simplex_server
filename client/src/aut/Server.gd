@@ -2,6 +2,10 @@ extends Node
 class_name Server_interface
 
 
+signal server_message(message)
+signal is_player_ready
+
+
 var network = NetworkedMultiplayerENet.new()
 var ip = "127.0.0.1"
 var port = 1987
@@ -9,7 +13,12 @@ var port = 1987
 var sync_nodes = {}
 var waiting_id = {}
 
-## Connection to server
+
+###################################################
+############### Server connection #################
+###################################################
+
+
 func connect_to_server():
 	network.create_client(ip,port)
 	get_tree().set_network_peer(network)
@@ -26,13 +35,13 @@ func _on_connection_failed():
 	print(">>> Failed to connect")
 
 
-### Syncronization manager
+###################################################
+############# Sync nodes management ###############
+###################################################
+
+
 func add_to_sync_nodes(node):
-	if node.id == "":
-		waiting_id[node.get_path()] = node
-		rpc_id(1, "ask_id", node.get_path())
-	else:
-		sync_nodes[node.id] = node 
+	sync_nodes[node.id] = node 
 
 
 func return_id(node_path, id):
@@ -52,6 +61,56 @@ func _is_valid_sync(id:String)-> bool:
 		return false
 
 
+func sync_of(node):
+	for c in node.get_children():
+		if c is Syncro:
+			return c
+	assert(false, "No Syncro node in "+ node.name)
+
+
+func is_syncro(node) -> bool:
+	for c in node.get_children():
+		if c is Syncro:
+			return true
+	return false
+
+
+###################################################
+########## Change scene and sync spawn ############
+###################################################
+
+
+remote func change_scene(scene_name):
+	get_tree().change_scene_to(ResourceManager.get_resource(scene_name))
+	get_tree().set_pause(true)
+	player_is_ready()
+
+
+remote func start_current_scene():
+	if 1 == get_tree().get_rpc_sender_id():
+		get_tree().set_pause(false)
+
+
+func spawn_sync(syn_par: Dictionary):
+	if 1 == get_tree().get_rpc_sender_id():
+		if syn_par["is_player"] and syn_par["is_master"] == get_tree().get_network_unique_id():
+			## TODO spawn_player
+			pass
+		var unit = ResourceManager.get_unit(syn_par["resource_name"])
+		var parent = get_node(syn_par["parent_path"])
+		if is_instance_valid(parent):
+			parent.add_child(unit)
+		else:
+			# TODO throw error
+			pass
+		sync_of(unit).initialize(syn_par)
+
+
+###################################################
+############# Node mastery management #############
+###################################################
+
+
 func ask_mastery(node_id, request: bool):
 	rpc_id(1, "ask_mastery", node_id, request)
 
@@ -61,7 +120,32 @@ remote func receive_mastery(node_id, response, current_master):
 		sync_nodes[node_id].receive_mastery(response, current_master)
 
 
-### Syncronization functions ###
+###################################################
+############## Messaging functions ################
+###################################################
+
+
+func send_message(message = ""):
+	rpc_id(1, "receive_message", message)
+
+
+remote func receive_message(message):
+	emit_signal("server_message", get_tree().get_rpc_sender_id(), message)
+
+
+remote func ask_ready():
+	emit_signal("is_player_ready")
+
+
+func player_is_ready():
+	rpc_id(1, "player_is_ready")
+
+
+###################################################
+############ Syncronization functions #############
+###################################################
+
+
 func sync_data(reliable, id, variable):
 	if reliable:
 		rpc_id(1, "receive_sync", id, variable)
