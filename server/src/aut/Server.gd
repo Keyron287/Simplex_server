@@ -13,8 +13,6 @@ var max_players = 10
 var sync_nodes: Dictionary = {}
 var start_id = 255
 
-var active = false
-
 enum server_boot_up_steps {ADD_CONTROLS, GET_IP, START_SERVER, SERVER_ACTIVE}
 enum loading_scene_steps {LOAD_SERVER_MAP, LOAD_CLIENT_MAP, PICK_SERVER_SYNCRO, SPAWN_CLIENT_SYNCRO, LOADING_FINISHED}
 
@@ -177,42 +175,54 @@ func is_syncro(node) -> bool:
 
 func load_scene(scene_name):
 	server_status["loading_scene"] = -1
+	_log("Loading new scene")
 	# Load the scene on the server and pause it to load everything correctly
-	# TODO check if resource manager return something
-	get_tree().change_scene_to(ResourceManager.get_resource(scene_name))
+	var scene = ResourceManager.get_resource(scene_name)
+	#var scene = ResourceManager.get_instance(scene_name)
+	#assert(is_instance_valid(scene), "Invalid scene instance")
+	get_tree().change_scene(scene)
 	get_tree().paused = true
+	_log("Loaded server map")
 	_step_signal("loading_scene", loading_scene_steps.LOAD_SERVER_MAP)
 	
 	# Asks to clients to load the same scene
 	rpc_id(0, "change_scene", scene_name)
+	_log("Notified to child to change scene")
 	_step_signal("loading_scene", loading_scene_steps.LOAD_CLIENT_MAP)
 	
 	# Whaits the clients that everyone confirms the load
+	_log("Wait for clients to finish load scene")
+# warning-ignore:unused_variable
 	for n in range(player_info.keys().size()):
 		yield(self,"player_ready")
+	yield(get_tree().create_timer(2),"timeout")
 	
 	# Notifies all the syncro to register themselves and pick an id
+	_log("Picking syncro nodes")
 	_step_signal("loading_scene", loading_scene_steps.PICK_SERVER_SYNCRO)
 	
 	# Spawns every syncro in the client scene
+	_log("Spawn syncro nodes in clients")
 	_step_signal("loading_scene", loading_scene_steps.SPAWN_CLIENT_SYNCRO)
 	for n in sync_nodes.keys():
 		var syn:Syn3D = sync_nodes[n]
 		spawn_sync_client(syn.get_sync_properties())
 	
 	# Notifies everyone that the scene is finisced to load
+	_log("Scene loading complete")
 	_step_signal("loading_scene", loading_scene_steps.LOADING_FINISHED)
 
 
 func start_current_scene():
 	# Tell everyone that the scene can begin
+	_log("Starting current scene")
 	get_tree().paused = false
 	rpc_id(0, "start_current_scene")
 
 
 func spawn_sync_server(unit_type, unit_transform, is_master = 1, parent_path = false) -> Node:
 	# Gets instance from Resouce_manager and the current scene
-	var unit = ResourceManager.get_unit(unit_type)
+	var unit = ResourceManager.get_instance(unit_type)
 	var parent = get_tree().current_scene
 	
 	# If parent path is not null add the child under the parent path
@@ -230,7 +240,7 @@ func spawn_sync_server(unit_type, unit_transform, is_master = 1, parent_path = f
 
 
 func spawn_sync_client(sync_property):
-	rpc_id(0, "spawn_sync",sync_property)
+	rpc_id(0, "spawn_sync", sync_property)
 
 
 func spawn_sync_all(unit_type, unit_transform, is_master = 1, parent_path = false):

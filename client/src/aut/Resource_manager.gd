@@ -21,9 +21,12 @@ func list_resources():
 		ret += r +" : "+resources[r]
 	return ret 
 
+# Gets the resource and not the instance
+func get_resource(resource_name):
+	return resources[resource_name]
 
 # Loads a resource istance, and emits a signal
-func get_resource(resource_name):
+func get_instance(resource_name):
 	if resources.has(resource_name):
 		var ins = load(resources[resource_name]).instance()
 		emit_signal("loaded_resource", resource_name, ins)

@@ -1,5 +1,6 @@
 extends Node
 
+
 var ready_players
 
 
@@ -8,24 +9,21 @@ func _enter_tree():
 	Server.connect("client_message", self, "client_response")
 
 
-func client_response(id, message):
-	pass
-
-
-func wait_for_players():
-	Server.ask_ready()
-	ready_players = 0
-	while ready_players < Server.player_info.keys().size():
-		yield(Server,"player_ready")
-		ready_players += 1
+func _ready():
+	ResourceManager.add_resource("livello_test", "res://test_scene/test.tscn")
+	ResourceManager.add_resource("unit_test", "res://test_scene/Test_unit.tscn")
 
 
 func start_game(step):
 	if step == Server.server_boot_up_steps.SERVER_ACTIVE:
 		# Waits_for players
-		wait_for_players()
+		Server.ask_ready()
+		ready_players = 1
+		while ready_players > 0:
+			yield(Server,"player_ready")
+			ready_players -= 1
+		yield(get_tree().create_timer(2), "timeout")
 		# Changes the scene
-		Server.load_scene("test")
-		while Server.server_status["loading_scene"] < Server.loading_scene_steps.LOADING_FINISHED:
-			yield(Server,"loading_scene")
-	
+		yield(Server.load_scene("livello_test"), "completed")
+		Server.start_current_scene()
+

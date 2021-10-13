@@ -49,8 +49,10 @@ func remove_from_sync_nodes(node, delete = false):
 	if delete:
 		node.queue_free()
 
+
 remote func remote_remove_sync(node_id, delete):
 	remove_from_sync_nodes(sync_nodes[node_id], delete)
+
 
 func _is_valid_sync(id:String)-> bool:
 	if sync_nodes.has(id) and is_instance_valid(sync_nodes[id]):
@@ -79,21 +81,25 @@ func is_syncro(node) -> bool:
 
 
 remote func change_scene(scene_name):
-	get_tree().change_scene_to(ResourceManager.get_resource(scene_name))
+	print("change_scene")
+	var scene = ResourceManager.get_resource(scene_name)
+	get_tree().change_scene(scene)
 	get_tree().set_pause(true)
 	player_is_ready()
 
 
 remote func start_current_scene():
+	print("start current scene")
 	if 1 == get_tree().get_rpc_sender_id():
 		get_tree().set_pause(false)
 
 
-func spawn_sync(syn_par: Dictionary):
+remote func spawn_sync(syn_par: Dictionary):
+	print("spawn: ",syn_par)
 	if 1 == get_tree().get_rpc_sender_id():
-		var unit = ResourceManager.get_unit(syn_par["resource_name"])
+		var unit = ResourceManager.get_instance(syn_par["resource_name"])
 		var parent = get_node(syn_par["parent_path"])
-		assert(is_instance_valid(parent), syn_par["parent_path"] + " is not a valid path")
+		assert(is_instance_valid(parent), str(syn_par["parent_path"]) + " is not a valid path")
 		parent.add_child(unit)
 		sync_of(unit).initialize(syn_par)
 

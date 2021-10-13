@@ -43,7 +43,7 @@ func _get_configuration_warning():
 func _enter_tree():
 	# If enters in the three while the scene is loading
 	# waits until the scene asks for syncro initialization
-	if Server.loading_scene_step < 2 :
+	if Server.server_status["loading_scene"] < Server.loading_scene_steps.PICK_SERVER_SYNCRO:
 		Server.connect("loading_scene",self,"initialize")
 	else:
 		initialize(Server.loading_scene_step)
@@ -61,7 +61,7 @@ func _exit_tree():
 
 # Adds the syncro to the list of syncronized nodes
 func initialize(step: int):
-	if step >= 2:
+	if step >= Server.loading_scene_steps.PICK_SERVER_SYNCRO:
 		id = Server.add_to_sync_nodes(self)
 
 
@@ -117,7 +117,7 @@ func get_sync_properties() -> Dictionary:
 		"my_master": my_master,
 		"data": data,
 		"global_transform" : get_parent().global_transform if get_parent() is Spatial else null,
-		"parent_path": get_parent().get_path()
+		"parent_path": get_parent().get_path() #TODO Errore
 	}
 
 
