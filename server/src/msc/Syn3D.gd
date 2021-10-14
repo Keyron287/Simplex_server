@@ -61,7 +61,7 @@ func _exit_tree():
 
 # Adds the syncro to the list of syncronized nodes
 func initialize(step: int):
-	if step >= Server.loading_scene_steps.PICK_SERVER_SYNCRO:
+	if step >= Server.loading_scene_steps.PICK_SERVER_SYNCRO and id == "":
 		id = Server.add_to_sync_nodes(self)
 
 
@@ -117,7 +117,7 @@ func get_sync_properties() -> Dictionary:
 		"my_master": my_master,
 		"data": data,
 		"global_transform" : get_parent().global_transform if get_parent() is Spatial else null,
-		"parent_path": get_parent().get_parent().get_path() #TODO Errore
+		"parent_path": get_parent().get_parent().get_path()
 	}
 
 
