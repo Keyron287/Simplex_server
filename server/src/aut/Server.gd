@@ -195,7 +195,6 @@ func load_scene(scene_name):
 # warning-ignore:unused_variable
 	for n in range(player_info.keys().size()):
 		yield(self,"player_ready")
-	yield(get_tree().create_timer(2),"timeout")
 	
 	# Notifies all the syncro to register themselves and pick an id
 	_log("Picking syncro nodes")
@@ -216,8 +215,8 @@ func load_scene(scene_name):
 func start_current_scene():
 	# Tell everyone that the scene can begin
 	_log("Starting current scene")
-	get_tree().paused = false
 	rpc_id(0, "start_current_scene")
+	get_tree().paused = false
 
 
 func spawn_sync_server(unit_type, unit_transform, is_master = 1, parent_path = false) -> Node:

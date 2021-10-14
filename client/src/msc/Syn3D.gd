@@ -44,8 +44,6 @@ func _exit_tree():
 
 
 func initialize(new_data):
-	last_transform = get_parent().global_transform
-	Server.add_to_sync_nodes(self)
 	self.sync_parent_transform = sync_parent_transform
 	self.id = new_data["id"]
 	self.is_player = new_data["is_player"]
@@ -54,7 +52,9 @@ func initialize(new_data):
 	self.is_master = new_data["my_master"] == get_tree().get_network_unique_id()
 	self.data = new_data["data"]
 	if new_data["global_transform"] != null and get_parent() is Spatial:
+		last_transform = get_parent().global_transform
 		get_parent().global_transform = new_data["global_transform"]
+	Server.add_to_sync_nodes(self)
 
 
 # Removes the node from the syncronized nodes

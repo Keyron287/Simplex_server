@@ -152,4 +152,5 @@ func sync_data(reliable, id, variable):
 
 
 remote func receive_sync(id, variable):
-	sync_nodes[id].receive_sync(variable)
+	if sync_nodes.has(id):
+		sync_nodes[id].receive_sync(variable)
