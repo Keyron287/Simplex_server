@@ -23,6 +23,7 @@ var server_status = {
 
 var player_info = {}
 
+
 var server_controls = preload("res://src/scn/Main.tscn").instance()
 
 
@@ -43,6 +44,10 @@ func _ready():
 	# starts the server
 	start_server()
 	_step_signal("server_booting", server_boot_up_steps.START_SERVER)
+	
+	# checks if there is a player
+	if ResourceManager.player_resource == {}:
+		_log("WARNING: There is no player resources")
 	
 	# updates interface
 	update_clients()
@@ -203,9 +208,15 @@ func load_scene(scene_name):
 	# Spawns every syncro in the client scene
 	_log("Spawn syncro nodes in clients")
 	_step_signal("loading_scene", loading_scene_steps.SPAWN_CLIENT_SYNCRO)
+	
 	for n in sync_nodes.keys():
 		var syn:Syn3D = sync_nodes[n]
 		spawn_sync_client(syn.get_sync_properties())
+	
+	for n in player_info.keys():
+		var player = ResourceManager.get_player_resource("player_test")
+		var spawn = get_tree().current_scene.get_node("Player_spawn")
+		spawn_sync_all("player_test", spawn.global_transform, int(n), spawn.get_path())
 	
 	# Notifies everyone that the scene is finisced to load
 	_log("Scene loading complete")

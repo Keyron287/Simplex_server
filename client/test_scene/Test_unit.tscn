@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://src/msc/Syn3D.gd" type="Script" id=1]
+[ext_resource path="res://test_scene/Automatic_controller.gd" type="Script" id=2]
 
 [sub_resource type="CapsuleShape" id=1]
 
@@ -12,8 +13,9 @@ material = SubResource( 2 )
 
 [node name="KinematicBody" type="KinematicBody"]
 collision_layer = 2
+script = ExtResource( 2 )
 
-[node name="Syn3D" type="Node" parent="."]
+[node name="Syncro" type="Node" parent="."]
 script = ExtResource( 1 )
 sync_parent_transform = true
 
