@@ -23,6 +23,7 @@ var server_status = {
 
 var player_info = {}
 
+var message_buffer = []
 
 var server_controls = preload("res://src/scn/Main.tscn").instance()
 
@@ -45,9 +46,6 @@ func _ready():
 	start_server()
 	_step_signal("server_booting", server_boot_up_steps.START_SERVER)
 	
-	# checks if there is a player
-	if ResourceManager.player_resource == {}:
-		_log("WARNING: There is no player resources")
 	
 	# updates interface
 	update_clients()
@@ -213,11 +211,17 @@ func load_scene(scene_name):
 		var syn:Syn3D = sync_nodes[n]
 		spawn_sync_client(syn.get_sync_properties())
 	
-	for n in player_info.keys():
-		var player = ResourceManager.get_player_resource("player_test")
+	_log("Spawning_players")
+	send_message(0, "choose_character")
+	var player_response = player_info.keys().size()
+	while player_response > 0:
+		yield(self, "client_message")
+		var response = message_buffer.pop_front()
 		var spawn = get_tree().current_scene.get_node("Player_spawn")
-		spawn_sync_all("player_test", spawn.global_transform, int(n), spawn.get_path())
-	
+		player_info[response[0]]["unit"] = spawn_sync_all(response[1], spawn.global_transform, response[0], spawn.get_parent().get_path())
+		update_clients()
+		player_response -= 1
+		
 	# Notifies everyone that the scene is finisced to load
 	_log("Scene loading complete")
 	_step_signal("loading_scene", loading_scene_steps.LOADING_FINISHED)
@@ -244,7 +248,7 @@ func spawn_sync_server(unit_type, unit_transform, is_master = 1, parent_path = f
 	parent.add_child(unit)
 	
 	# Syncronizes the transform and the data with the given data 
-	unit.global_tranform = unit_transform
+	unit.global_transform = unit_transform
 	sync_of(unit).my_master = is_master
 	return unit
 
@@ -257,6 +261,7 @@ func spawn_sync_all(unit_type, unit_transform, is_master = 1, parent_path = fals
 	var unit = spawn_sync_server(unit_type, unit_transform, is_master, parent_path)
 	var unit_sync:Syn3D = sync_of(unit)
 	spawn_sync_client(unit_sync.get_sync_properties())
+	return unit
 
 
 ###################################################
@@ -284,7 +289,9 @@ func send_message(client_id = 0, message = ""):
 
 
 remote func receive_message(message):
-	emit_signal("client_message", get_tree().get_rpc_sender_id(), message)
+	var m = [get_tree().get_rpc_sender_id(), message]
+	message_buffer.append(m)
+	emit_signal("client_message", m[0], m[1])
 
 
 func ask_ready():

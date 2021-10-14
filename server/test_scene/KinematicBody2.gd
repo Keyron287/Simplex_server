@@ -20,4 +20,4 @@ func _physics_process(delta):
 	if Input.is_key_pressed(KEY_LEFT):
 		direction.z = -1
 	
-	move_and_slide(direction * speed * delta)
+	#move_and_slide(direction * speed * delta)

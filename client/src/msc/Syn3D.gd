@@ -73,10 +73,7 @@ func receive_mastery(response, current_master):
 
 func sync_data(is_reliable, variable):
 	if is_master:
-		if is_reliable:
-			Server.send_sync(id, variable)
-		else:
-			Server.send_update(id, variable)
+		Server.sync_data(is_reliable, id, variable)
 
 
 func receive_sync(variable):
@@ -107,6 +104,7 @@ func set_(var_name, new_value):
 
 
 func process_sync(variable):
+	prints(data[variable[0]], variable[1])
 	assert(typeof(variable) == TYPE_ARRAY)
 	if data.has(variable[0]) and variable[1] != data[variable[0]]:
 		data[variable[0]] = variable[1]

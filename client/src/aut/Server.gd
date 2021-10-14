@@ -13,6 +13,8 @@ var port = 1987
 var sync_nodes = {}
 var waiting_id = {}
 
+var message_buffer = []
+
 
 ###################################################
 ############### Server connection #################
@@ -123,12 +125,13 @@ remote func receive_mastery(node_id, response, current_master):
 ###################################################
 
 
-func send_message(message = ""):
+func send_message(message):
 	rpc_id(1, "receive_message", message)
 
 
 remote func receive_message(message):
-	emit_signal("server_message", get_tree().get_rpc_sender_id(), message)
+	message_buffer.append(message)
+	emit_signal("server_message", message)
 
 
 remote func ask_ready():

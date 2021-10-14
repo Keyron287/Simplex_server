@@ -8,15 +8,10 @@ signal loaded_resource(resource_name, loaded_resource)
 
 
 var resources = {}
-var player_resource = {}
+
 
 # Adds the resources to the list
 func add_resource(resource_name:String, resource_path:String):
-	resources[resource_name] = resource_path
-
-
-# Adds the resources to the list
-func add_player_resource(resource_name:String, resource_path:String):
 	resources[resource_name] = resource_path
 
 
@@ -33,11 +28,6 @@ func get_resource(resource_name):
 	return resources[resource_name]
 
 
-# Gets the resource and not the instance
-func get_player_resource(resource_name):
-	return resources[resource_name]
-
-
 # Loads a resource istance, and emits a signal
 func get_instance(resource_name):
 	if resources.has(resource_name):
@@ -45,10 +35,3 @@ func get_instance(resource_name):
 		emit_signal("loaded_resource", resource_name, ins)
 		return ins
 
-
-# Loads a resource istance, and emits a signal
-func get_player_instance(resource_name):
-	if resources.has(resource_name):
-		var ins = load(resources[resource_name]).instance()
-		emit_signal("loaded_resource", resource_name, ins)
-		return ins

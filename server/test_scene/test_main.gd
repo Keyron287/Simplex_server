@@ -6,13 +6,12 @@ var ready_players
 
 func _enter_tree():
 	Server.connect("server_booting", self, "start_game")
-	Server.connect("client_message", self, "client_response")
 
 
 func _ready():
 	ResourceManager.add_resource("livello_test", "res://test_scene/test.tscn")
 	ResourceManager.add_resource("unit_test", "res://test_scene/Test_unit.tscn")
-	ResourceManager.add_player_resource("player_test", "res://test_scene/Test_player.tscn")
+	ResourceManager.add_resource("player_test", "res://test_scene/Test_player.tscn")
 
 
 func start_game(step):

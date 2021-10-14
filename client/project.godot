@@ -9,6 +9,11 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Position3D",
+"class": "Player_spawn",
+"language": "GDScript",
+"path": "res://src/msc/Player_spawn.gd"
+}, {
 "base": "Node",
 "class": "Resource_manager",
 "language": "GDScript",
@@ -25,6 +30,7 @@ _global_script_classes=[ {
 "path": "res://src/msc/Syn3D.gd"
 } ]
 _global_script_class_icons={
+"Player_spawn": "",
 "Resource_manager": "",
 "Server_interface": "",
 "Syn3D": "res://src/ast/Syncro.svg"

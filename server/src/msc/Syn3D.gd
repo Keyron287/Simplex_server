@@ -46,7 +46,7 @@ func _enter_tree():
 	if Server.server_status["loading_scene"] < Server.loading_scene_steps.PICK_SERVER_SYNCRO:
 		Server.connect("loading_scene",self,"initialize")
 	else:
-		initialize(Server.loading_scene_step)
+		initialize(Server.server_status["loading_scene"])
 
 
 func _exit_tree():
