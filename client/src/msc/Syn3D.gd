@@ -15,7 +15,7 @@ var is_master = false
 var resource_name = ""
 
 var buffer = []
-var last_transform = Vector3.ZERO
+var last_transform
 
 
 ###################################################
@@ -44,6 +44,7 @@ func _exit_tree():
 
 
 func initialize(new_data):
+	last_transform = get_parent().global_transform
 	Server.add_to_sync_nodes(self)
 	self.sync_parent_transform = sync_parent_transform
 	self.id = new_data["id"]
