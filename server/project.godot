@@ -15,18 +15,12 @@ _global_script_classes=[ {
 "path": "res://src/aut/Resource_manager.gd"
 }, {
 "base": "Node",
-"class": "Syn2D",
-"language": "GDScript",
-"path": "res://src/msc/Syn2D.gd"
-}, {
-"base": "Node",
 "class": "Syn3D",
 "language": "GDScript",
 "path": "res://src/msc/Syn3D.gd"
 } ]
 _global_script_class_icons={
 "Resource_manager": "",
-"Syn2D": "res://src/ast/Syncro.svg",
 "Syn3D": "res://src/ast/Syncro.svg"
 }
 

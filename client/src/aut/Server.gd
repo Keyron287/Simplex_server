@@ -63,14 +63,14 @@ func _is_valid_sync(id:String)-> bool:
 
 func sync_of(node):
 	for c in node.get_children():
-		if c is Syn3D or c is Syn2D:
+		if c is Syn3D:
 			return c
 	assert(false, "No Syncro node in "+ node.name)
 
 
 func is_syncro(node) -> bool:
 	for c in node.get_children():
-		if c is Syn3D or c is Syn2D:
+		if c is Syn3D:
 			return true
 	return false
 
