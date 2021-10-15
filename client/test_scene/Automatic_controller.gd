@@ -17,10 +17,7 @@ func _ready():
 func change_color(var_name, color):
 	print(var_name, color)
 	if var_name == "my_color":
-		if color == Color(0,0,1):
-			syn.set_("my_color", Color(1,0,0))
-		else:
-			syn.set_("my_color", Color(0,0,1))
+		syn.set_("my_color", color)
 		var material = SpatialMaterial.new()
 		material.albedo_color = syn.get_("my_color")
 		$MeshInstance.set_surface_material(0, material)

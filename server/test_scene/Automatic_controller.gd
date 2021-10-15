@@ -13,12 +13,14 @@ var direction = Vector3.RIGHT
 func _ready():
 	timer.start(change_dir_time)
 	timer.connect("timeout", self, "change_direction")
-	syn.register_var("my_color", Color(0,0,1))
+	syn.register_var("my_color", Color(0,0,0))
 
 
 func change_direction():
+	
 	direction *= -1
 	change_color(syn.get_("my_color"))
+
 
 func change_color(color):
 	if color == Color(0,0,1):
@@ -28,6 +30,7 @@ func change_color(color):
 	var material = SpatialMaterial.new()
 	material.albedo_color = syn.get_("my_color")
 	$MeshInstance.set_surface_material(0, material)
+
 
 func _physics_process(delta):
 	move_and_slide(direction * speed * delta)
